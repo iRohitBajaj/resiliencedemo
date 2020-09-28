@@ -1,0 +1,85 @@
+server:
+  port: 8085
+
+logging:
+  level:
+    io.github.resilience4j: DEBUG
+
+spring:
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+unreliableservice:
+  uri: http://localhost:8080/
+
+management.endpoints.web.exposure.include: '*'
+management.endpoint.health.show-details: always
+management.health.circuitbreakers.enabled: true
+management.health.ratelimiters.enabled: true
+management.metrics.tags.application: ${spring.application.name}
+management.metrics.distribution.percentiles-histogram.http.server.requests: true
+management.metrics.distribution.percentiles-histogram.resilience4j.circuitbreaker.calls: true
+
+resilience4j.timelimiter:
+  configs:
+    default:
+      timeoutDuration: 1s
+  instances:
+    unreliableservice:
+      baseConfig: default
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      registerHealthIndicator: true
+      ringBufferSizeInClosedState: 10
+      ringBufferSizeInHalfOpenState: 3
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+      waitDurationInOpenState: 2s
+      failureRateThreshold: 50
+  instances:
+    unreliableservice:
+      baseConfig: default
+      registerHealthIndicator: true
+      ringBufferSizeInClosedState: 20
+      ringBufferSizeInHalfOpenState: 3
+      waitDurationInOpenState: 5s
+      failureRateThreshold: 20
+
+resilience4j.ratelimiter:
+  configs:
+    default:
+      registerHealthIndicator: true
+      limitForPeriod: 10
+      limitRefreshPeriod: 1s
+      # The default wait time a thread waits for a permission
+      timeoutDuration: 0
+  instances:
+    unreliableservice:
+      baseConfig: default
+
+resilience4j.retry:
+  configs:
+    default:
+      maxRetryAttempts: 3
+      enableExponentialBackoff: true
+      exponentialBackoffMultiplier: 3
+      waitDuration: 10
+      retryExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.util.concurrent.TimeoutException
+      ignoreExceptions:
+        - com.example.BusinessException
+  instances:
+    unreliableservice:
+      baseConfig: default
+
+resilience4j.bulkhead:
+  configs:
+    default:
+      maxConcurrentCalls: 10
+      #Max amount of time a thread should be blocked for when attempting to enter a saturated bulkhead.
+      maxWaitDuration: 10ms
+  instances:
+    unreliableservice:
+      baseConfig: default
