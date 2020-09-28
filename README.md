@@ -4,7 +4,7 @@ This demo shows how to use the fault tolerance library [Resilience4j](https://gi
 
 See [User Guide](https://resilience4j.readme.io/docs/) for more details.
 
-The [resilientClient]() shows how to use the Resilience4j provided Annotations.
+The [resilientClient](https://github.com/iRohitBajaj/resiliencedemo/blob/master/resilientClient/src/main/java/com/example/ResilientClientController.java) shows how to use the Resilience4j provided Annotations.
 
 ## Getting Started
 
@@ -32,7 +32,7 @@ Alternate:
 ```sh  
 docker-compose -f docker-compose-desktop.yml up  
 ```  
-This will run proetheus, grafana and resilientClient on a dedicated network "net", thus urls would not be accessible via host.  
+This will run prometheus, grafana and resilientClient on a dedicated network "net", thus urls would not be accessible via host.  
 You can still ssh into docker container and curl relevant endpoints.  
 
 ### Step 2
@@ -53,11 +53,16 @@ Configure the Grafana.
     - Import dashboard
     - Upload dashboard.json from /docker
     
-### Step 3
+### Step 4
 Use postman or any suitable rest client to access below endpoints:  
 http://localhost:8085/ - Retuns a success message  
 http://localhost:8085/slow - Returns a delayed success message provided resilience4j.timelimiter.configs.default.timeoutDuration is less than sleep interval in unreliableService controller, else times out and recorded as an exception by resilience4j.  
 http://localhost:8085/error - Returns an exception and recorded as a failure by resilience4j, retried by @Retry proxy with exponential back off till it opens the circuit.  
-http://localhost:8085/errorwithfallback - Returns an exception and recorded as a failure by resilience4j but application gracefully handles an exception and returns fallback response even if circuit is open.  
-http://localhost:8085/businesserror - Returns an exception but not recorded as a failure as it is ignored by resilience4j based on conf provided in application.yml resilience4j.retry.configs.default.ignoreExceptions: - com.example.BusinessException  
+http://localhost:8085/errorwithfallback - Returns an exception and recorded as a failure by resilience4j but application gracefully handles the exception and returns fallback response even if circuit is open.  
+http://localhost:8085/businesserror - Returns an exception but not recorded as a failure as it is ignored by resilience4j based on conf provided in application.yml -   
+resilience4j.retry.configs.default.ignoreExceptions: - com.example.BusinessException  
+
+### Other useful urls to check
+http://localhost:8085/actuator/prometheus - Endpoint populated by micrometer based prometheus registry and scraped by prometheus for resiliency metrics.  
+http://localhost:8085/actuator/metrics - Look at resilience4j* endpoints to see detailed metrics information.  
 
