@@ -28,7 +28,6 @@
 		<vavrVersion>0.10.0</vavrVersion>
 		<chaosMonkeyVersion>2.1.1</chaosMonkeyVersion>
 	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>io.github.resilience4j</groupId>
